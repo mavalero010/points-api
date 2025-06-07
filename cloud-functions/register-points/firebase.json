@@ -1,0 +1,32 @@
+{
+  "functions": {
+    "source": ".",
+    "runtime": "nodejs20",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "*.local"
+    ],
+    "codebase": "default",
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run lint",
+      "npm --prefix \"$RESOURCE_DIR\" run build"
+    ]
+  },
+  "emulators": {
+    "functions": {
+      "port": 5004
+    },
+    "ui": {
+      "port": 4004
+    },
+    "hub": {
+      "port": 4404
+    },
+    "logging": {
+      "port": 4504
+    }
+  }
+}

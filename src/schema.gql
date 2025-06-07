@@ -1,0 +1,77 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input CreateRewardInput {
+  description: String
+  isActive: Boolean! = true
+  name: String!
+  pointsCost: Int!
+  stock: Int
+}
+
+input CreateUserInput {
+  name: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  createReward(input: CreateRewardInput!): Reward!
+  createUser(input: CreateUserInput!): User!
+  deleteReward(id: ID!): Boolean!
+  redeemPoints(rewardId: ID!, userId: ID!): Transaction!
+  registerPurchase(amount: Float!, userId: ID!): Transaction!
+  updateReward(id: ID!, input: CreateRewardInput!): Reward!
+}
+
+type Query {
+  getAvailableRewards(userId: ID!): [Reward!]!
+  getReward(id: ID!): Reward!
+  getRewards: [Reward!]!
+  getTransactions: [Transaction!]!
+  getUserHistory(userId: ID!): [Transaction!]!
+  getUserPoints(userId: ID!): UserPointsResponse!
+  getUsers: [User!]!
+}
+
+type Reward {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  isActive: Boolean!
+  name: String!
+  pointsCost: Int!
+  stock: Int
+  updatedAt: DateTime!
+}
+
+type Transaction {
+  date: DateTime!
+  description: String
+  id: ID!
+  points: Int!
+  reference: String
+  type: String!
+  user: User!
+  userId: ID!
+}
+
+type User {
+  createdAt: DateTime!
+  id: ID!
+  name: String!
+  totalPoints: Float!
+  transactions: [Transaction!]
+  updatedAt: DateTime!
+}
+
+type UserPointsResponse {
+  id: ID!
+  name: String!
+  totalPoints: Float!
+  updatedAt: DateTime!
+}

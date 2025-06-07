@@ -1,0 +1,43 @@
+services:
+  # API NestJS
+  - type: web
+    name: points-api
+    env: docker
+    region: oregon
+    plan: free
+    healthCheckPath: /graphql
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: points-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: points-db
+          property: port
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: points-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: points-db
+          property: password
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: points-db
+          property: database
+      - key: MONGODB_URI
+        sync: false
+      - key: CLOUD_FUNCTION_URL
+        sync: false
+
+databases:
+  # PostgreSQL
+  - name: points-db
+    databaseName: points_db
+    user: points_user
+    plan: free
+    region: oregon 

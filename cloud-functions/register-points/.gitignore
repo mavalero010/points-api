@@ -1,0 +1,29 @@
+# Compiled JavaScript files
+lib/**/*.js
+lib/**/*.js.map
+test/
+.test.env
+# TypeScript v1 declaration files
+typings/
+
+# Node.js dependency directory
+node_modules/
+*.local
+
+# Credenciales
+service-account-key.json
+
+
+# Variables de entorno
+.env
+.env.*
+# Build
+dist/
+lib/
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
