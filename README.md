@@ -78,10 +78,11 @@ API GraphQL para un sistema de puntos de fidelidad donde los usuarios pueden acu
 ## 📋 Requisitos
 
 ### Requisitos de Sistema
-- Node.js v14 o superior
-- PostgreSQL 12 o superior
-- MongoDB 4.4 o superior
-- Docker (opcional, para desarrollo)
+- Node.js v20.10.5 o superior (basado en @types/node)
+- PostgreSQL 8.11.1 o superior (basado en pg)
+- MongoDB 8.0.3 o superior (basado en mongoose)
+- TypeScript 5.3.3 o superior
+- NestJS 10.0.0 o superior
 
 ### Cuentas y Servicios
 - Cuenta de Google Cloud Platform
@@ -526,3 +527,11 @@ npm run dev
 # Despliegue
 npm run deploy
 ```
+
+### Versiones específicas de dependencias principales
+- @nestjs/*: ^10.0.0
+- TypeORM: ^0.3.17
+- GraphQL: ^16.8.1
+- Apollo Server: ^3.13.0
+- Mongoose: ^8.0.3
+- PostgreSQL Driver: ^8.11.1
