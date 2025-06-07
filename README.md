@@ -107,12 +107,8 @@ cp .env.example .env
 # Editar .env con tus credenciales
 ```
 
-4. **Iniciar servicios (Docker)**
-```bash
-docker-compose up -d
-```
 
-5. **Ejecutar migraciones**
+4. **Ejecutar migraciones**
 ```bash
 npm run migration:run
 ```
