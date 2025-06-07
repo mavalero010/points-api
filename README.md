@@ -127,9 +127,6 @@ npm run start:dev
 # Compilación
 npm run build
 
-# Pruebas
-npm run test
-
 # Linting
 npm run lint
 ```
@@ -162,3 +159,82 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 ## 📞 Soporte
 
 Para soporte, email: soporte@tudominio.com o abre un issue en el repositorio.
+
+NOTA:
+Se pensó en implementar pruebas unitarias pero por temas de tiempo se hizo más énfasis
+en el correcto funcionamiento de cada uno de los servicios solicitados.
+
+## 🐳 Docker
+
+### Configuración de Docker
+
+El proyecto incluye dos Dockerfiles optimizados:
+
+1. **Proyecto Principal** (`/Dockerfile`):
+   - Multi-etapa para optimizar el tamaño
+   - Basado en Node.js 20 Alpine
+   - Expone el puerto 3000
+   - Optimizado para producción
+
+2. **Cloud Function** (`/cloud-functions/register-points/Dockerfile`):
+   - Multi-etapa para optimizar el tamaño
+   - Basado en Node.js 20 Alpine
+   - Expone el puerto 8080
+   - Configurado para Cloud Functions
+
+### Construir y Ejecutar
+
+#### Proyecto Principal
+```bash
+# Construir la imagen
+docker build -t points-api .
+
+# Ejecutar el contenedor
+docker run -p 3000:3000 points-api
+```
+
+#### Cloud Function
+```bash
+# Navegar al directorio
+cd cloud-functions/register-points
+
+# Construir la imagen
+docker build -t points-cloud-function .
+
+# Ejecutar el contenedor
+docker run -p 8080:8080 points-cloud-function
+```
+
+### Variables de Entorno
+
+Para ejecutar los contenedores con variables de entorno:
+
+```bash
+# Proyecto Principal
+docker run -p 3000:3000 \
+  -e NODE_ENV=production \
+  -e POSTGRES_HOST=your-db-host \
+  -e POSTGRES_PASSWORD=your-password \
+  points-api
+
+# Cloud Function
+docker run -p 8080:8080 \
+  -e NODE_ENV=production \
+  -e GOOGLE_CLOUD_PROJECT=your-project-id \
+  points-cloud-function
+```
+
+### Archivos .dockerignore
+
+El proyecto incluye archivos `.dockerignore` optimizados:
+
+1. **Proyecto Principal** (`/.dockerignore`):
+   - Excluye archivos de desarrollo
+   - Ignora directorios de dependencias
+   - Protege información sensible
+   - Mantiene solo archivos necesarios
+
+2. **Cloud Function** (`/cloud-functions/register-points/.dockerignore`):
+   - Excluye archivos de desarrollo
+   - Ignora credenciales
+   - Optimizado para Cloud Functions
