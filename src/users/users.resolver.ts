@@ -17,9 +17,7 @@ export class UsersResolver {
   ) {}
 
   @Mutation(() => User)
-  async createUser(
-    @Args('input') input: CreateUserInput,
-  ): Promise<User> {
+  async createUser(@Args('input') input: CreateUserInput): Promise<User> {
     return this.usersService.create(input);
   }
 
@@ -37,9 +35,7 @@ export class UsersResolver {
   }
 
   @Query(() => [Transaction])
-  async getUserHistory(
-    @Args('userId', { type: () => ID }) userId: string,
-  ): Promise<Transaction[]> {
+  async getUserHistory(@Args('userId', { type: () => ID }) userId: string): Promise<Transaction[]> {
     // Verificar que el usuario existe
     await this.usersService.findOne(userId);
     return this.transactionsService.getUserHistory(userId);
@@ -49,4 +45,4 @@ export class UsersResolver {
   async getUsers(): Promise<User[]> {
     return this.usersService.findAll();
   }
-} 
+}

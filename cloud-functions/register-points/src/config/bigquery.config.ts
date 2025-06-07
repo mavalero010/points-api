@@ -1,7 +1,6 @@
 import { TableSchema } from '@google-cloud/bigquery';
 import dotenv from 'dotenv';
 
-// Cargar variables de entorno
 dotenv.config();
 
 export const BIGQUERY_CONFIG = {
@@ -16,4 +15,4 @@ export const POINTS_SCHEMA: TableSchema = {
     { name: 'transactionId', type: 'STRING', mode: 'REQUIRED' },
     { name: 'timestamp', type: 'TIMESTAMP', mode: 'REQUIRED' },
   ],
-}; 
+};

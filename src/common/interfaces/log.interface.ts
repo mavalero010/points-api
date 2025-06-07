@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, Float, Scalar } from '@nestjs/graphql';
+import { Field, ID, ObjectType, Float } from '@nestjs/graphql';
 import { GraphQLJSON } from 'graphql-type-json';
 
 @ObjectType()
@@ -44,4 +44,4 @@ export class SystemLog extends BaseLog {
 
   @Field()
   success: boolean;
-} 
+}

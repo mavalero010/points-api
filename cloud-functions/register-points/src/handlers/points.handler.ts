@@ -5,7 +5,6 @@ import { BIGQUERY_CONFIG, POINTS_SCHEMA } from '../config/bigquery.config';
 
 export const registerPoints = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Validar el cuerpo de la solicitud
     const { userId, points, transactionId } = req.body as PointsData;
 
     if (!userId || !points || !transactionId) {
@@ -15,32 +14,28 @@ export const registerPoints = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Preparar los datos para BigQuery
-    const rows = [{
-      userId,
-      points,
-      transactionId,
-      timestamp: new Date().toISOString(),
-    }];
+    const rows = [
+      {
+        userId,
+        points,
+        transactionId,
+        timestamp: new Date().toISOString(),
+      },
+    ];
 
-    // Insertar en BigQuery
     const bigquery = new BigQuery();
-    const tableRef = bigquery
-      .dataset(BIGQUERY_CONFIG.dataset)
-      .table(BIGQUERY_CONFIG.table);
+    const tableRef = bigquery.dataset(BIGQUERY_CONFIG.dataset).table(BIGQUERY_CONFIG.table);
 
-    await tableRef.insert(rows, { 
+    await tableRef.insert(rows, {
       schema: POINTS_SCHEMA,
       createInsertId: true,
       ignoreUnknownValues: false,
     });
 
-    // Responder con éxito
     res.status(200).json({
       message: 'Puntos registrados correctamente',
       data: rows[0],
     });
-
   } catch (error) {
     console.error('Error al registrar puntos:', error);
     res.status(500).json({
@@ -48,4 +43,4 @@ export const registerPoints = async (req: Request, res: Response): Promise<void>
       details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined,
     });
   }
-}; 
+};

@@ -27,4 +27,4 @@ export const SystemLogSchema = new Schema({
 TransactionLogSchema.index({ timestamp: -1 });
 TransactionLogSchema.index({ userId: 1, timestamp: -1 });
 SystemLogSchema.index({ timestamp: -1 });
-SystemLogSchema.index({ component: 1, timestamp: -1 }); 
+SystemLogSchema.index({ component: 1, timestamp: -1 });

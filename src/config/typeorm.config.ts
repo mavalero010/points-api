@@ -1,8 +1,7 @@
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
 
-config(); // Carga las variables de entorno
-
+config();
 export default new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
@@ -13,4 +12,4 @@ export default new DataSource({
   entities: ['src/**/*.entity{.ts,.js}'],
   migrations: ['src/migrations/*{.ts,.js}'],
   synchronize: false,
-}); 
+});

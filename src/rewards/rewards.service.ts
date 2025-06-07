@@ -83,7 +83,7 @@ export class RewardsService {
       component: 'RewardsService',
       action: 'getAvailableRewards',
       success: true,
-      metadata: { 
+      metadata: {
         userId,
         availableCount: availableRewards.length,
         userPoints: user.totalPoints,
@@ -126,4 +126,4 @@ export class RewardsService {
 
     return true;
   }
-} 
+}

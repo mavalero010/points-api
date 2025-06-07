@@ -1,7 +1,7 @@
 import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
 
 export function IsPositiveNumber(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'isPositiveNumber',
       target: object.constructor,
@@ -20,25 +20,24 @@ export function IsPositiveNumber(validationOptions?: ValidationOptions) {
 }
 
 export function IsValidPoints(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'isValidPoints',
       target: object.constructor,
       propertyName: propertyName,
       options: {
-        message: 'Los puntos deben ser un número entero positivo',
+        message: 'El valor de los puntos debe ser un número entero positivo',
         ...validationOptions,
       },
       validator: {
-        validate(value: any) {
-          return (
-            typeof value === 'number' &&
-            Number.isInteger(value) &&
-            value > 0 &&
-            value <= 1000000 // Límite máximo de puntos por transacción
-          );
+        validate(value: any, _args: ValidationArguments) {
+          if (typeof value !== 'number') return false;
+          if (!Number.isInteger(value)) return false;
+          if (value < 1) return false;
+          if (value > 1000000) return false;
+          return true;
         },
       },
     });
   };
-} 
+}

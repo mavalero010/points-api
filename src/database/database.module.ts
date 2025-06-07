@@ -5,8 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from '../users/entities/user.entity';
 import { Transaction } from '../transactions/entities/transaction.entity';
 import { Reward } from '../rewards/entities/reward.entity';
-import { TransactionLogSchema } from '../common/schemas/log.schema';
-import { SystemLogSchema } from '../common/schemas/log.schema';
+import { TransactionLogSchema, SystemLogSchema } from '../common/schemas/log.schema';
 
 @Module({
   imports: [
@@ -14,18 +13,18 @@ import { SystemLogSchema } from '../common/schemas/log.schema';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         const logger = new Logger('TypeOrmModule');
-        
+
         const config = {
           type: 'postgres' as const,
-          host: configService.get('DB_HOST') || 'localhost',
-          port: parseInt(configService.get('DB_PORT') || '5432', 10),
-          username: configService.get('DB_USERNAME') || 'postgres',
-          password: configService.get('DB_PASSWORD'),
-          database: configService.get('DB_NAME') || 'points_db',
+          host: (await configService.get('DB_HOST')) || 'localhost',
+          port: parseInt((await configService.get('DB_PORT')) || '5432', 10),
+          username: (await configService.get('DB_USERNAME')) || 'postgres',
+          password: await configService.get('DB_PASSWORD'),
+          database: (await configService.get('DB_NAME')) || 'points_db',
           entities: [User, Transaction, Reward],
           autoLoadEntities: true,
-          synchronize: configService.get('NODE_ENV') !== 'production',
-          logging: configService.get('NODE_ENV') !== 'production',
+          synchronize: (await configService.get('NODE_ENV')) !== 'production',
+          logging: (await configService.get('NODE_ENV')) !== 'production',
         };
 
         logger.debug('TypeORM Config:', {
@@ -44,7 +43,7 @@ import { SystemLogSchema } from '../common/schemas/log.schema';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         const logger = new Logger('MongooseModule');
-        const uri = configService.get('MONGODB_URI');
+        const uri = await configService.get('MONGODB_URI');
 
         if (!uri) {
           logger.error('MONGODB_URI no está definida en las variables de entorno');
@@ -62,4 +61,4 @@ import { SystemLogSchema } from '../common/schemas/log.schema';
     ]),
   ],
 })
-export class DatabaseModule {} 
+export class DatabaseModule {}

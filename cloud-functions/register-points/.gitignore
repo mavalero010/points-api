@@ -27,3 +27,6 @@ lib/
 # IDE
 .vscode/
 .idea/
+
+# ESLint cache
+.eslintcache

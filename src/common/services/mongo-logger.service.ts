@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { BaseLog, SystemLog, TransactionLog } from '../interfaces/log.interface';
+import { SystemLog, TransactionLog } from '../interfaces/log.interface';
 
 @Injectable()
 export class MongoLoggerService {
@@ -29,18 +29,10 @@ export class MongoLoggerService {
   }
 
   async getTransactionLogs(userId: string) {
-    return this.transactionLogModel
-      .find({ userId })
-      .sort({ timestamp: -1 })
-      .limit(100)
-      .exec();
+    return this.transactionLogModel.find({ userId }).sort({ timestamp: -1 }).limit(100).exec();
   }
 
   async getSystemLogs() {
-    return this.systemLogModel
-      .find()
-      .sort({ timestamp: -1 })
-      .limit(100)
-      .exec();
+    return this.systemLogModel.find().sort({ timestamp: -1 }).limit(100).exec();
   }
-} 
+}

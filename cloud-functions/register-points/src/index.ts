@@ -1,20 +1,10 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
 import * as functions from 'firebase-functions/v1';
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-// Cargar variables de entorno
-const envPath = path.resolve(__dirname, '../.env');
+const envPath = path.resolve(__dirname, '../.test.env');
 console.log('📁 Cargando variables de entorno desde:', envPath);
 
 const result = dotenv.config({ path: envPath });
@@ -26,20 +16,19 @@ if (result.error) {
     GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS,
     BIGQUERY_DATASET: process.env.BIGQUERY_DATASET,
     BIGQUERY_TABLE: process.env.BIGQUERY_TABLE,
-    NODE_ENV: process.env.NODE_ENV
+    NODE_ENV: process.env.NODE_ENV,
   });
 }
 
-// Configuración del entorno
 const config = {
-  projectId: process.env.GOOGLE_CLOUD_PROJECT ,
-  credentialsPath: process.env.GOOGLE_APPLICATION_CREDENTIALS || './credentials/service-account-key.json',
+  projectId: process.env.GOOGLE_CLOUD_PROJECT,
+  credentialsPath:
+    process.env.GOOGLE_APPLICATION_CREDENTIALS || './credentials/service-account-key.json',
   dataset: process.env.BIGQUERY_DATASET || 'points_system',
   table: process.env.BIGQUERY_TABLE || 'points_transactions',
-  isDevelopment: process.env.NODE_ENV === 'development'
+  isDevelopment: process.env.NODE_ENV === 'development',
 };
 
-// Interfaz para la estructura de puntos
 interface PointsTransaction {
   userId: string;
   points: number;
@@ -48,52 +37,50 @@ interface PointsTransaction {
   status: 'success' | 'error';
 }
 
-// Simulación de almacenamiento en memoria (en producción sería BigQuery)
 const transactions: PointsTransaction[] = [];
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Middleware para logging
-app.use((req: Request, res: Response, next) => {
-  console.log(`📝 ${req.method} ${req.path}`, {
+// Middleware de logging
+const loggingMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  const logData = {
+    method: req.method,
+    path: req.path,
     body: req.body,
     query: req.query,
-    timestamp: new Date().toISOString()
-  });
-  next();
-});
+    timestamp: new Date().toISOString(),
+  };
 
-// Función para generar ID de transacción
+  console.log(`📝 ${logData.method} ${logData.path}`, logData);
+  next();
+};
+
 const generateTransactionId = () => `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-// Función para simular la inserción en BigQuery
 const simulateBigQueryInsert = async (transaction: PointsTransaction): Promise<boolean> => {
   try {
-    // Simulamos un pequeño delay como si fuera una operación real
     await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // En producción, aquí iría el código para insertar en BigQuery
+
     if (!config.isDevelopment) {
       console.log('🔧 En producción, esto insertaría en BigQuery:', {
         projectId: config.projectId,
         dataset: config.dataset,
         table: config.table,
-        transaction
+        transaction,
       });
     }
-    
-    // Por ahora, solo guardamos en memoria
+
     transactions.push(transaction);
-    
+
     console.log('✅ Transacción registrada:', {
       transactionId: transaction.transactionId,
       userId: transaction.userId,
       points: transaction.points,
-      environment: config.isDevelopment ? 'development' : 'production'
+      environment: config.isDevelopment ? 'development' : 'production',
     });
-    
+
     return true;
   } catch (error) {
     console.error('❌ Error registrando transacción:', error);
@@ -101,70 +88,68 @@ const simulateBigQueryInsert = async (transaction: PointsTransaction): Promise<b
   }
 };
 
-// Endpoint principal para registrar puntos
-app.post('/register-points', async (req: Request, res: Response) => {
+// Handler para registrar puntos
+const registerPointsHandler = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, points } = req.body;
 
-    // Validaciones básicas
     if (!userId || typeof points !== 'number') {
       console.error('❌ Datos inválidos:', { userId, points });
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
-        error: 'Datos inválidos. Se requiere userId y points numérico'
+        error: 'Datos inválidos. Se requiere userId y points numérico',
       });
+      return;
     }
 
-    // Crear objeto de transacción
     const transaction: PointsTransaction = {
       userId,
       points,
       transactionId: generateTransactionId(),
       timestamp: new Date().toISOString(),
-      status: 'success'
+      status: 'success',
     };
 
-    // Simular inserción en BigQuery
     const insertSuccess = await simulateBigQueryInsert(transaction);
 
     if (!insertSuccess) {
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
-        error: 'Error al registrar la transacción'
+        error: 'Error al registrar la transacción',
       });
+      return;
     }
 
-    // Respuesta exitosa
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: {
         transactionId: transaction.transactionId,
         userId: transaction.userId,
         points: transaction.points,
         timestamp: transaction.timestamp,
-        environment: config.isDevelopment ? 'development' : 'production'
-      }
+        environment: config.isDevelopment ? 'development' : 'production',
+      },
     });
-
   } catch (error) {
     console.error('❌ Error en register-points:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      error: 'Error interno del servidor'
+      error: 'Error interno del servidor',
     });
   }
-});
+};
 
-// Endpoint de prueba para verificar transacciones (solo para desarrollo)
-app.get('/transactions', (req: Request, res: Response) => {
+// Handler para obtener transacciones
+const getTransactionsHandler = (req: Request, res: Response): void => {
   if (!config.isDevelopment) {
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
-      error: 'Endpoint solo disponible en desarrollo'
+      error: 'Endpoint solo disponible en desarrollo',
     });
+    return;
   }
-  
-  return res.status(200).json({
+
+  res.status(200).json({
     success: true,
     data: {
       transactions,
@@ -172,11 +157,29 @@ app.get('/transactions', (req: Request, res: Response) => {
       config: {
         projectId: config.projectId,
         dataset: config.dataset,
-        table: config.table
-      }
-    }
+        table: config.table,
+      },
+    },
   });
-});
+};
 
-// Exportar la función HTTP
+// Configuración de rutas
+const setupRoutes = (): void => {
+  // Middleware de logging
+  app.use(loggingMiddleware);
+
+  // Ruta para registrar puntos
+  app.post('/register-points', (req: Request, res: Response) => {
+    void registerPointsHandler(req, res);
+  });
+
+  // Ruta para obtener transacciones
+  app.get('/transactions', (req: Request, res: Response) => {
+    void getTransactionsHandler(req, res);
+  });
+};
+
+// Inicializar la aplicación
+setupRoutes();
+
 export const registerPoints = functions.https.onRequest(app);

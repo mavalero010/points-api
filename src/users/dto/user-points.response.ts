@@ -13,4 +13,4 @@ export class UserPointsResponse {
 
   @Field(() => Date)
   updatedAt: Date;
-} 
+}

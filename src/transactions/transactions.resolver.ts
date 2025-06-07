@@ -27,9 +27,7 @@ export class TransactionsResolver {
   }
 
   @Query(() => [Transaction])
-  async getUserHistory(
-    @Args('userId', { type: () => ID }) userId: string,
-  ): Promise<Transaction[]> {
+  async getUserHistory(@Args('userId', { type: () => ID }) userId: string): Promise<Transaction[]> {
     return this.transactionsService.getUserHistory(userId);
   }
 
@@ -49,4 +47,4 @@ export class TransactionsResolver {
   async getSystemLogs(): Promise<SystemLog[]> {
     return this.transactionsService.getSystemLogs();
   }
-} 
+}

@@ -3,23 +3,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Reward } from './entities/reward.entity';
 import { RewardsService } from './rewards.service';
 import { RewardsResolver } from './rewards.resolver';
-import { MongooseModule } from '@nestjs/mongoose';
-import { TransactionLogSchema, SystemLogSchema } from '../common/schemas/log.schema';
-import { MongoLoggerService } from '../common/services/mongo-logger.service';
 import { UsersModule } from '../users/users.module';
 import { TransactionsModule } from '../transactions/transactions.module';
+import { CommonModule } from '../common/common.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Reward]),
-    MongooseModule.forFeature([
-      { name: 'TransactionLog', schema: TransactionLogSchema },
-      { name: 'SystemLog', schema: SystemLogSchema },
-    ]),
     forwardRef(() => UsersModule),
     forwardRef(() => TransactionsModule),
+    CommonModule,
   ],
-  providers: [RewardsService, RewardsResolver, MongoLoggerService],
+  providers: [RewardsService, RewardsResolver],
   exports: [RewardsService],
 })
-export class RewardsModule {} 
+export class RewardsModule {}

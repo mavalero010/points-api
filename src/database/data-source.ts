@@ -17,4 +17,4 @@ export default new DataSource({
   entities: [User, Transaction, Reward],
   migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
   synchronize: false,
-}); 
+});

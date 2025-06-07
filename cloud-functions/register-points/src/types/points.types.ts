@@ -3,4 +3,4 @@ export interface PointsData {
   points: number;
   transactionId: string;
   timestamp?: string;
-} 
+}

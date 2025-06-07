@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -18,8 +18,8 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       where: { id },
       relations: {
-        transactions: false // No cargamos las transacciones por defecto
-      }
+        transactions: false,
+      },
     });
 
     if (!user) {
@@ -43,7 +43,7 @@ export class UsersService {
   async updatePoints(userId: string, points: number): Promise<User> {
     const user = await this.findOne(userId);
     const newTotal = user.totalPoints + points;
-    
+
     if (newTotal < 0) {
       await this.logger.logSystemEvent({
         level: 'error',
@@ -74,4 +74,4 @@ export class UsersService {
     const user = this.usersRepository.create(input);
     return this.usersRepository.save(user);
   }
-} 
+}

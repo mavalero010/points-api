@@ -22,12 +22,7 @@ import { CloudFunctionService } from '../common/services/cloud-function.service'
       { name: 'SystemLog', schema: SystemLogSchema },
     ]),
   ],
-  providers: [
-    TransactionsService,
-    TransactionsResolver,
-    MongoLoggerService,
-    CloudFunctionService,
-  ],
+  providers: [TransactionsService, TransactionsResolver, MongoLoggerService, CloudFunctionService],
   exports: [TransactionsService],
 })
-export class TransactionsModule {} 
+export class TransactionsModule {}

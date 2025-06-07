@@ -21,16 +21,12 @@ export class RewardsResolver {
   }
 
   @Query(() => [Reward])
-  async getAvailableRewards(
-    @Args('userId', { type: () => ID }) userId: string,
-  ): Promise<Reward[]> {
+  async getAvailableRewards(@Args('userId', { type: () => ID }) userId: string): Promise<Reward[]> {
     return this.rewardsService.getAvailableRewards(userId);
   }
 
   @Mutation(() => Reward)
-  async createReward(
-    @Args('input') input: CreateRewardInput,
-  ): Promise<Reward> {
+  async createReward(@Args('input') input: CreateRewardInput): Promise<Reward> {
     return this.rewardsService.create(input);
   }
 
@@ -43,10 +39,8 @@ export class RewardsResolver {
   }
 
   @Mutation(() => Boolean)
-  async deleteReward(
-    @Args('id', { type: () => ID }) id: string,
-  ): Promise<boolean> {
+  async deleteReward(@Args('id', { type: () => ID }) id: string): Promise<boolean> {
     await this.rewardsService.remove(id);
     return true;
   }
-} 
+}

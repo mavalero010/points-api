@@ -1,20 +1,21 @@
-import { Module, Logger } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import configuration from './config/configuration';
-import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { RewardsModule } from './rewards/rewards.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ErrorInterceptor } from './common/interceptors/error.interceptor';
-import { GraphQLJSON } from 'graphql-type-json';
+import { ValidationPipe } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
-    // Configuración
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
@@ -22,37 +23,50 @@ import { GraphQLJSON } from 'graphql-type-json';
       cache: false,
     }),
 
-    // GraphQL
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: true,
-      buildSchemaOptions: {
-        orphanedTypes: [GraphQLJSON],
-      },
-      formatError: (error) => {
-        const originalError = error.extensions?.originalError as any;
-        const statusCode = error.extensions?.statusCode || 500;
-        
-        return {
-          message: error.message,
-          code: error.extensions?.code || 'INTERNAL_SERVER_ERROR',
-          statusCode,
-          timestamp: error.extensions?.timestamp || new Date().toISOString(),
-        };
-      },
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      sortSchema: true,
+      playground: true,
     }),
 
-    // Módulos de la aplicación
-    DatabaseModule,
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST ?? 'localhost',
+      port: parseInt(process.env.DB_PORT ?? '5432', 10),
+      username: process.env.DB_USERNAME ?? 'postgres',
+      password: process.env.DB_PASSWORD ?? 'postgres',
+      database: process.env.DB_DATABASE ?? 'points_db',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: process.env.NODE_ENV !== 'production',
+      logging: false,
+    }),
+    MongooseModule.forRoot(process.env.MONGODB_URI ?? 'mongodb://localhost:27017/points_logs'),
     UsersModule,
     TransactionsModule,
     RewardsModule,
+    CommonModule,
   ],
   providers: [
     {
       provide: APP_INTERCEPTOR,
       useClass: ErrorInterceptor,
     },
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transformOptions: {
+          enableImplicitConversion: true,
+        },
+        validationError: {
+          target: false,
+          value: false,
+        },
+      }),
+    },
   ],
 })
-export class AppModule {} 
+export class AppModule {}

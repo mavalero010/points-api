@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Transaction, TransactionType } from './entities/transaction.entity';
@@ -12,10 +12,11 @@ import { CloudFunctionService } from '../common/services/cloud-function.service'
 import { User } from '../users/entities/user.entity';
 import { Reward } from '../rewards/entities/reward.entity';
 import { TransactionLog, SystemLog } from '../common/interfaces/log.interface';
+import { TransactionMapper, TransactionModel } from './mappers/transaction.mapper';
 
 @Injectable()
 export class TransactionsService {
-  private readonly POINTS_MULTIPLIER = 0.1; // 10% del monto en puntos
+  private readonly POINTS_MULTIPLIER = 0.1;
 
   constructor(
     @InjectRepository(Transaction)
@@ -37,27 +38,27 @@ export class TransactionsService {
     const points = Math.floor(amount * this.POINTS_MULTIPLIER);
     const reference = `PURCHASE-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Verificar que el usuario existe y obtenerlo
     const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new NotFoundException(`No se encontró el usuario con ID ${userId}`);
+    }
 
-    // Crear la transacción
-    const newTransaction = this.transactionRepository.create({
+    const transactionModel: Partial<TransactionModel> = {
       userId,
-      user, // Asignar el usuario directamente
       type: TransactionType.EARN,
       points,
       reference,
       description: `Compra registrada por ${amount}`,
       date: new Date(),
-    });
+    };
 
-    // Guardar la transacción
+    const newTransaction = this.transactionRepository.create(
+      TransactionMapper.toPartialEntity(transactionModel),
+    );
+
     const savedTransaction = await this.transactionRepository.save(newTransaction);
-
-    // Actualizar puntos del usuario
     await this.usersService.updatePoints(userId, points);
 
-    // Registrar en MongoDB
     await this.logger.logTransaction({
       userId,
       transactionType: 'earn',
@@ -68,7 +69,6 @@ export class TransactionsService {
       metadata: { amount, reference },
     });
 
-    // Enviar a Cloud Function
     try {
       await this.cloudFunction.registerPoints({
         userId,
@@ -86,7 +86,6 @@ export class TransactionsService {
       });
     }
 
-    // Retornar la transacción con la relación cargada
     const foundTransaction = await this.transactionRepository.findOne({
       where: { id: savedTransaction.id },
       relations: ['user'],
@@ -96,40 +95,37 @@ export class TransactionsService {
       throw new NotFoundException(`No se encontró la transacción con ID ${savedTransaction.id}`);
     }
 
-    return foundTransaction;
+    return TransactionMapper.toEntity(foundTransaction as TransactionModel);
   }
 
   async redeemPoints(input: RedeemPointsInput): Promise<Transaction> {
     try {
       const { userId, rewardId, description } = input;
 
-      // Obtener usuario y recompensa
       const [user, reward] = await Promise.all([
         this.usersService.findOne(userId),
         this.rewardsService.findOne(rewardId),
       ]);
 
-      // Verificar puntos suficientes
       if (user.totalPoints < reward.pointsCost) {
         throw new InsufficientPointsException(user.totalPoints, reward.pointsCost);
       }
 
-      // Crear la transacción
-      const transaction = this.transactionRepository.create({
+      const transactionModel: Partial<TransactionModel> = {
         userId,
         type: TransactionType.REDEEM,
         points: -reward.pointsCost,
         description: description || `Redención: ${reward.name}`,
         date: new Date(),
-      });
+      };
 
-      // Guardar la transacción
+      const transaction = this.transactionRepository.create(
+        TransactionMapper.toPartialEntity(transactionModel),
+      );
+
       const savedTransaction = await this.transactionRepository.save(transaction);
-
-      // Actualizar puntos del usuario
       await this.usersService.updatePoints(userId, -reward.pointsCost);
 
-      // Registrar en MongoDB
       await this.logger.logTransaction({
         userId,
         transactionType: 'redeem',
@@ -140,31 +136,27 @@ export class TransactionsService {
         metadata: { rewardId, rewardName: reward.name },
       });
 
-      // Retornar la transacción con la relación cargada
       const foundTransaction = await this.transactionRepository.findOne({
         where: { id: savedTransaction.id },
-        relations: {
-          user: true
-        }
+        relations: ['user'],
       });
 
       if (!foundTransaction) {
         throw new NotFoundException(`No se encontró la transacción con ID ${savedTransaction.id}`);
       }
 
-      return foundTransaction;
+      return TransactionMapper.toEntity(foundTransaction as TransactionModel);
     } catch (error) {
-      // Registrar el error en MongoDB
       await this.logger.logSystemEvent({
         level: 'error',
         message: `Error al redimir puntos: ${error.message}`,
         component: 'TransactionsService',
         action: 'redeemPoints',
         success: false,
-        metadata: { 
+        metadata: {
           userId: input.userId,
           rewardId: input.rewardId,
-          error: error.message 
+          error: error.message,
         },
       });
 
@@ -173,19 +165,37 @@ export class TransactionsService {
   }
 
   async getUserHistory(userId: string): Promise<Transaction[]> {
-    // Verificar que el usuario existe
-    await this.usersService.findOne(userId);
+    try {
+      const user = await this.usersService.findOne(userId);
+      if (!user) {
+        throw new NotFoundException(`No se encontró el usuario con ID ${userId}`);
+      }
 
-    return this.transactionRepository.find({
-      where: { userId },
-      order: { date: 'DESC' },
-    });
+      const transactions = await this.transactionRepository.find({
+        where: { userId },
+        order: { date: 'DESC' },
+        relations: ['user'],
+      });
+
+      if (!transactions) {
+        throw new NotFoundException(
+          `No se encontraron transacciones para el usuario con ID ${userId}`,
+        );
+      }
+
+      return TransactionMapper.toEntityArray(transactions as TransactionModel[]);
+    } catch (_error) {
+      throw new NotFoundException(`No se encontró el usuario con ID ${userId}`);
+    }
   }
 
   async findAll(): Promise<Transaction[]> {
-    return this.transactionRepository.find({
+    const transactions = await this.transactionRepository.find({
       order: { date: 'DESC' },
+      relations: ['user'],
     });
+
+    return TransactionMapper.toEntityArray(transactions as TransactionModel[]);
   }
 
   async getTransactionLogs(userId: string): Promise<TransactionLog[]> {
@@ -195,4 +205,4 @@ export class TransactionsService {
   async getSystemLogs(): Promise<SystemLog[]> {
     return this.logger.getSystemLogs();
   }
-} 
+}

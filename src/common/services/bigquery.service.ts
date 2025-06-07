@@ -24,20 +24,19 @@ export class BigQueryService {
     type: 'earn' | 'redeem';
     timestamp: Date;
   }): Promise<void> {
-    const rows = [{
-      user_id: data.userId,
-      points: data.points,
-      transaction_id: data.transactionId,
-      type: data.type,
-      timestamp: data.timestamp.toISOString(),
-      processed_at: new Date().toISOString(),
-    }];
+    const rows = [
+      {
+        user_id: data.userId,
+        points: data.points,
+        transaction_id: data.transactionId,
+        type: data.type,
+        timestamp: data.timestamp.toISOString(),
+        processed_at: new Date().toISOString(),
+      },
+    ];
 
     try {
-      await this.bigquery
-        .dataset(this.datasetId)
-        .table(this.tableId)
-        .insert(rows);
+      await this.bigquery.dataset(this.datasetId).table(this.tableId).insert(rows);
     } catch (error) {
       console.error('Error al insertar en BigQuery:', error);
       throw error;
@@ -74,4 +73,4 @@ export class BigQueryService {
       throw error;
     }
   }
-} 
+}

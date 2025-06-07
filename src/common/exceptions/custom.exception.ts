@@ -22,7 +22,7 @@ export class InsufficientPointsException extends CustomException {
   constructor(available: number, required: number) {
     super(
       `Puntos insuficientes. Disponible: ${available}, Requerido: ${required}`,
-      HttpStatus.BAD_REQUEST
+      HttpStatus.BAD_REQUEST,
     );
   }
-} 
+}

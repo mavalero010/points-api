@@ -1,6 +1,10 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import {
+  IsValidTransactionType,
+  IsValidTransactionPoints,
+} from '../../common/validators/entity.validators';
 
 export enum TransactionType {
   EARN = 'earn',
@@ -15,11 +19,12 @@ export class Transaction {
   id: string;
 
   @Field(() => ID)
-  @Column()
+  @Column({ type: 'uuid' })
   userId: string;
 
   @Field(() => User)
-  @ManyToOne(() => User, user => user.transactions)
+  @ManyToOne(() => User, (user) => user.transactions, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Field()
@@ -28,10 +33,12 @@ export class Transaction {
     enum: TransactionType,
     default: TransactionType.EARN,
   })
+  @IsValidTransactionType()
   type: TransactionType;
 
   @Field(() => Int)
   @Column()
+  @IsValidTransactionPoints()
   points: number;
 
   @Field()
@@ -45,4 +52,4 @@ export class Transaction {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   reference?: string;
-} 
+}

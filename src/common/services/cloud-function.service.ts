@@ -37,11 +37,8 @@ export class CloudFunctionService {
 
       this.logger.log(`Puntos registrados en Cloud Function: ${JSON.stringify(data)}`);
     } catch (error) {
-      this.logger.error(
-        `Error al invocar Cloud Function: ${error.message}`,
-        error.stack,
-      );
+      this.logger.error(`Error al invocar Cloud Function: ${error.message}`, error.stack);
       // No lanzamos el error para no interrumpir el flujo principal
     }
   }
-} 
+}
