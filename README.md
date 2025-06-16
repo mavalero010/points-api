@@ -156,9 +156,6 @@ points-api/
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
 
-## 📞 Soporte
-
-Para soporte, email: soporte@tudominio.com o abre un issue en el repositorio.
 
 NOTA:
 Se pensó en implementar pruebas unitarias pero por temas de tiempo se hizo más énfasis
